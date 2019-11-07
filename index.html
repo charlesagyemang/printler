@@ -1,0 +1,224 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title>Possitech</title>
+
+  <!-- Custom fonts for this template-->
+  <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+
+  <!-- Custom styles for this template-->
+  <link href="../css/brand.css" rel="stylesheet">
+  <link href="../css/avatar.css" rel="stylesheet">
+  <link href="../vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+
+
+</head>
+
+
+<body>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $("#upload").bind("click", function () {
+                $("#upload").text("setting up....");
+                var regex = /^([a-zA-Z0-9\s_\\.\-:])+(.csv|.txt)$/;
+                if (regex.test($("#fileUpload").val().toLowerCase())) {
+                    if (typeof (FileReader) != "undefined") {
+                        var reader = new FileReader();
+                        reader.onload = function (e) {
+                            var table = $("<table />");
+                            var rows = e.target.result.split("\n");
+                            let topRow = rows[0].split(",");
+
+                            // console.log(rows[0].split(","));
+                            const mainarray = [];
+                            for (var i = 1; i < rows.length; i++) {
+
+                              const eachRow = rows[i].split(",");
+                              const obj = {}
+
+                              for (var k = 0; k < eachRow.length; k++) {
+                                obj[topRow[k].split(" ").join("").toLowerCase()] = eachRow[k]
+                              }
+                              mainarray.push(obj);
+                            }
+                            // Set localStorage file
+
+                            localStorage.printableData = JSON.stringify(mainarray);
+                            localStorage.firstRowData  = JSON.stringify(topRow);
+
+                            $("#upload").text("SetUpComplete Redirecting Please Wait....");
+
+
+                            // Begin to For Body Of the loader options
+                            const stepOneContentHead = `
+                            <div class="input-group mb-3">
+                              <div class="input-group-prepend">
+                                <label class="input-group-text" for="stepOneSelections">Columns</label>
+                              </div>
+                              <select class="custom-select" id="stepOneSelections">
+                                  <option selected>Choose...</option>`
+
+                            const stepTwoContentHead = `
+                            <div class="input-group mb-3">
+                              <div class="input-group-prepend">
+                                <label class="input-group-text" for="stepTwoSelections">Columns</label>
+                              </div>
+                              <select class="custom-select" id="stepTwoSelections">
+                                  <option selected>Choose...</option>`
+
+                            const stepContentMiddle = [];
+
+
+                            topRow.forEach((head, i) =>{
+                              stepContentMiddle.push(`<option value=${i}>${head}</option>`);
+                            })
+
+
+                            const stepContentButtom = `  </select>
+                                                          </div>
+                                                       `
+                            const stepOneFinalArray = stepOneContentHead  + stepContentMiddle.join("")  + stepContentButtom;
+                            const stepTwoFinalArray = stepTwoContentHead  + stepContentMiddle.join("")  + stepContentButtom;
+
+                            $("#stepOneDiv").html(stepOneFinalArray);
+                            $("#stepTwoDiv").html(stepTwoFinalArray);
+
+                            $("#setUpLoader").attr("hidden",false);
+
+                            // console.log(stepOneFinalArray);
+
+                            // Activate Button Click
+
+                            $("#completeSetUp").unbind("click").click(function(){
+                              console.log("heyyyy");
+                              const stepOneChosenValue = $('#stepOneSelections').val();
+                              const stepTwoChosenValue = $('#stepTwoSelections').val();
+                              const printWidth  = $("#printWidth").val();
+                              const printHeight = $("#printHeight").val();
+
+                              if (stepOneChosenValue !== stepTwoChosenValue &&
+                                  stepOneChosenValue !== "Choose..." &&
+                                  stepTwoChosenValue !== "Choose..." &&
+                                  printWidth > 99 &&
+                                  printHeight > 99
+                                  )
+                              {
+
+                                // Set localStorage of Main Models
+                                localStorage.mainModelPosition    = stepOneChosenValue;
+                                localStorage.subModelPosition     = stepTwoChosenValue;
+                                localStorage.printWidthDimention  = printWidth;
+                                localStorage.printHeightDimention = printHeight;
+
+
+                                // redirect
+
+                                location.href = "/list";
+
+
+                                return
+                              }
+
+                              alert("Error: Please Choose A Different Value For Step One And Step Two And Dont Skip Any Step. Print Width & Height Should Not Be less Than 100 cm");
+
+                            })
+
+
+
+
+                            // location.href = "/list";
+                        }
+                        reader.readAsText($("#fileUpload")[0].files[0]);
+                    } else {
+                        alert("This browser does not support HTML5.");
+                    }
+                } else {
+                    alert("Please upload a valid CSV file.");
+                }
+            });
+        });
+    </script>
+    <br>
+    <h1 class="mx-auto" style="width: 500px;">Possitech Event Print Portal</h1><br>
+    <div class="container-fluid">
+      <input class="btn btn-success" type="file" id="fileUpload"/>
+      <input type="button" class="btn btn-secondary" id="upload" value="Begin Setup" />
+      <hr />
+
+
+      <div id="dvCSV">
+        <div id="setUpLoader" hidden>
+
+
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col">
+
+                <h5>
+                  Step One:<br>
+                  Select Main Printable Column
+                </h5>
+
+                <div id="stepOneDiv" class="">
+                </div>
+
+              </div>
+              <div class="col">
+                <h5>
+                  Step Two:<br>
+                  Select Sub Printable Column
+                </h5>
+                <div id="stepTwoDiv" class="">
+
+                </div>
+
+              </div>
+              <div class="col">
+
+
+                <form>
+                  <div class="container">
+                    <h5>
+                      Step Three: <br>
+                      Set Print Dimentions (cm)
+                    </h5>
+                    <div class="row">
+                      <div class="col">
+                        <div class="form-group">
+                          <input type="number" class="form-control" id="printWidth" value="200" placeholder="Width">
+                        </div>
+                      </div>
+                      <div class="col">
+                        <div class="form-group">
+                          <input type="number" class="form-control" id="printHeight" value="125" placeholder="Height">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </form>
+                <div class="container">
+                  <div class="row">
+                    <div class="col">
+                    </div>
+                    <div class="col">
+                      <button id="completeSetUp" type="submit" class="btn btn-primary">Complete SetUp</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+</body>
+</html>
